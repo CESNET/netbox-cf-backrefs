@@ -26,10 +26,14 @@ def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
     """
     target_ct = ContentType.objects.get_for_model(target_obj)
 
-    cfs = CustomField.objects.filter(
-        type__in=("object", "multiobject"),
-        related_object_type=target_ct,
-    ).exclude(name__in=_excluded_cf_names())
+    cfs = (
+        CustomField.objects.filter(
+            type__in=("object", "multiobject"),
+            related_object_type=target_ct,
+        )
+        .exclude(name__in=_excluded_cf_names())
+        .exclude(ui_visible="hidden")
+    )
 
     for cf in cfs:
         cf_label = cf.label or cf.name

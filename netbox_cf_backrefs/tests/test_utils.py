@@ -152,3 +152,16 @@ class GetReverseCFReferencesTests(TestCase):
         ):
             refs = list(get_reverse_cf_references(self.target_a))
         self.assertEqual(refs, [])
+
+    def test_hidden_cf_is_skipped(self):
+        make_cf(
+            name="internal_only",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+            ui_visible="hidden",
+        )
+        self._make_device("dev-internal", {"internal_only": self.target_a.pk})
+
+        refs = list(get_reverse_cf_references(self.target_a))
+        self.assertEqual(refs, [])
