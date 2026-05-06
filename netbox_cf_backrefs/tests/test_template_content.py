@@ -51,3 +51,25 @@ class PanelRenderTests(TestCase):
         self.assertIn("Referenced by Custom Fields", body)
         self.assertIn(device.get_absolute_url(), body)
         self.assertIn("Technical contact", body)
+
+    def test_panel_absent_when_no_references(self):
+        # CF exists targeting Contact, but no source object references this contact.
+        make_cf(
+            name="tech_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        response = self.client.get(
+            reverse("tenancy:contact", args=[self.contact.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Referenced by Custom Fields", response.content.decode())
+
+    def test_panel_absent_when_no_cfs_target_the_model(self):
+        # No CF created at all.
+        response = self.client.get(
+            reverse("tenancy:contact", args=[self.contact.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Referenced by Custom Fields", response.content.decode())
