@@ -1097,14 +1097,20 @@ The spec deliberately chose option B: a viewer without view permission on the so
 
 ```python
     def test_user_without_view_permission_still_sees_referencing_row(self):
+        from core.models import ObjectType
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.models import Permission
+        from users.models import ObjectPermission
 
+        # NetBox uses its own users.ObjectPermission — not Django auth.Permission.
+        # Grant "plain" permission to view Contacts (so the page loads at all)
+        # but no permission to view Devices.
         User = get_user_model()
         plain = User.objects.create_user("plain", password="p")
-        plain.user_permissions.add(
-            Permission.objects.get(codename="view_contact"),
+        contact_view = ObjectPermission.objects.create(
+            name="view_contact", actions=["view"]
         )
+        contact_view.users.add(plain)
+        contact_view.object_types.add(ObjectType.objects.get_for_model(Contact))
 
         make_cf(
             name="tech_contact",
