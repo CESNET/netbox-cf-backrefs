@@ -887,7 +887,7 @@ import logging
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.paginator import EmptyPage, Paginator
+from django.core.paginator import InvalidPage, Paginator
 from django.template.loader import render_to_string
 from netbox.plugins import PluginTemplateExtension, get_plugin_config
 
@@ -918,7 +918,7 @@ def _build_extension(model_label: str):
             paginator = Paginator(refs, page_size)
             try:
                 page = paginator.page(request.GET.get(PAGE_QUERY_PARAM, 1))
-            except EmptyPage:
+            except InvalidPage:
                 page = paginator.page(paginator.num_pages)
 
             return render_to_string(
