@@ -1,4 +1,5 @@
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
+from django.contrib.contenttypes.models import ContentType
 from tenancy.models import Contact
 from utilities.testing import TestCase
 
@@ -165,3 +166,30 @@ class GetReverseCFReferencesTests(TestCase):
 
         refs = list(get_reverse_cf_references(self.target_a))
         self.assertEqual(refs, [])
+
+    def test_unloadable_source_model_is_skipped_with_warning(self):
+        from unittest.mock import patch
+
+        make_cf(
+            name="primary_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        device = self._make_device("dev-ok", {"primary_contact": self.target_a.pk})
+
+        original_model_class = ContentType.model_class
+
+        def fake_model_class(self):
+            if self.app_label == "dcim" and self.model == "device":
+                return None  # simulate unloadable model
+            return original_model_class(self)
+
+        with patch.object(ContentType, "model_class", fake_model_class), \
+                self.assertLogs("netbox_cf_backrefs", level="WARNING") as captured:
+            refs = list(get_reverse_cf_references(self.target_a))
+
+        self.assertEqual(refs, [])
+        self.assertTrue(any("device" in m for m in captured.output))
+        # Sanity: device still exists; we only simulated an unloadable model.
+        self.assertEqual(Device.objects.filter(pk=device.pk).count(), 1)

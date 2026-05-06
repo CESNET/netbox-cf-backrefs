@@ -1,10 +1,13 @@
 """Reverse lookup of object / multi-object custom field references."""
+import logging
 from collections.abc import Iterator
 from dataclasses import dataclass
 
 from django.contrib.contenttypes.models import ContentType
 from extras.models import CustomField
 from netbox.plugins import get_plugin_config
+
+logger = logging.getLogger("netbox_cf_backrefs")
 
 
 def _excluded_cf_names() -> set[str]:
@@ -39,6 +42,12 @@ def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
         cf_label = cf.label or cf.name
         for source_ct in cf.object_types.all():
             source_model = source_ct.model_class()
+            if source_model is None:
+                logger.warning(
+                    "Skipping CF %r: source content type %s.%s is not loadable",
+                    cf.name, source_ct.app_label, source_ct.model,
+                )
+                continue
             if cf.type == "object":
                 lookup = {f"custom_field_data__{cf.name}": target_obj.pk}
             else:  # "multiobject"
