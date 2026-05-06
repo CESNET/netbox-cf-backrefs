@@ -39,21 +39,19 @@ def _build_extension(model_label: str):
                 return ""
 
             page_size = get_plugin_config("netbox_cf_backrefs", "page_size") or 50
+            per_page = request.GET.get("cfbackrefs_per_page", page_size)
             table = CFBackrefTable(refs)
             try:
                 table.paginate(
                     page=request.GET.get(PAGE_QUERY_PARAM, 1),
-                    per_page=request.GET.get("cfbackrefs_per_page", page_size),
+                    per_page=per_page,
                     paginator_class=EnhancedPaginator,
                     orphans=0,
                 )
             except InvalidPage:
-                table.paginate(
-                    page=table.paginator.num_pages,
-                    per_page=page_size,
-                    paginator_class=EnhancedPaginator,
-                    orphans=0,
-                )
+                # Out-of-range page: keep the user's per_page selection by
+                # reusing the paginator that paginate() already constructed.
+                table.page = table.paginator.page(table.paginator.num_pages)
 
             return render_to_string(
                 "netbox_cf_backrefs/panel.html",
