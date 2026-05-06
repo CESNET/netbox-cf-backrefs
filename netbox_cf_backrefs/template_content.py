@@ -41,6 +41,10 @@ def _build_extension(model_label: str):
             page_size = get_plugin_config("netbox_cf_backrefs", "page_size") or 50
             per_page = request.GET.get("cfbackrefs_per_page", page_size)
             table = CFBackrefTable(refs)
+            # Apply sort from request so column-header clicks toggle direction.
+            sort = request.GET.get("cfbackrefs_sort")
+            if sort:
+                table.order_by = sort
             try:
                 table.paginate(
                     page=request.GET.get(PAGE_QUERY_PARAM, 1),
