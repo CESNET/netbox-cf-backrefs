@@ -13,7 +13,9 @@
       <tbody>
         {% for ref in page.object_list %}
           <tr>
-            <td><a href="{{ ref.source_object.get_absolute_url }}">{{ ref.source_object }}</a></td>
+            <td>
+              <a href="{{ ref.source_object.get_absolute_url }}">{{ ref.source_object }}</a>
+            </td>
             <td>{{ ref.source_model_label|capfirst }}</td>
             <td>{{ ref.cf_label }}</td>
           </tr>
@@ -22,8 +24,6 @@
     </table>
   </div>
   {% if page.has_other_pages %}
-    <div class="card-footer">
-      {% include 'inc/paginator.html' with paginator=page.paginator page=page %}
-    </div>
+    <div class="card-footer">{% include 'inc/paginator.html' with paginator=page.paginator page=page %}</div>
   {% endif %}
 </div>
