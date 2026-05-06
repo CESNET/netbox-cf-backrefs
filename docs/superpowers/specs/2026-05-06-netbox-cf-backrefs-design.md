@@ -32,11 +32,12 @@ A single inline panel injected via `PluginTemplateExtension.full_width_page()`, 
 | `device-01` (link) | Device | Technical contact |
 | `circuit-42` (link) | Circuit | Escalation contact |
 
-- Source object cell links to `source_object.get_absolute_url()`.
+- Source object cell links to `source_object.get_absolute_url()` via `django_tables2.Column(linkify=True)`.
 - Source type is the model's verbose name.
 - Custom field shows `cf.label` (falls back to `cf.name`).
-- Sorting: client-side per page (current-page slice only).
-- Pagination: standard NetBox `inc/paginator.html`; query param `?cfbackrefs_page=N`.
+- Sorting: server-side via `django_tables2` (sort applies to the full in-memory list before pagination).
+- Pagination: `django_tables2.Table.paginate(..., paginator_class=EnhancedPaginator, orphans=0)`. Prefixed query params: `?cfbackrefs_page=N`, `?cfbackrefs_per_page=N`. Prefix prevents collisions with sibling plugins' paginators on the same page.
+- Rendering: `inc/table.html` for the table body; bespoke `_paginator.html` (NetBox-look copy with prefixed query keys) for pagination controls and the per-page dropdown.
 
 **Empty state:** panel suppressed entirely when zero rows. No "no references" message.
 
@@ -51,9 +52,11 @@ netbox_cf_backrefs/
 ├── __init__.py              # PluginConfig
 ├── template_content.py      # Dynamic PluginTemplateExtension registration
 ├── utils.py                 # get_reverse_cf_references()
+├── tables.py                # CFBackrefTable (django_tables2 Table, prefix=cfbackrefs_)
 ├── templates/
 │   └── netbox_cf_backrefs/
-│       └── panel.html
+│       ├── panel.html       # render_table + _paginator include
+│       └── _paginator.html  # NetBox-look paginator with prefixed query keys
 ├── tests/
 │   ├── __init__.py
 │   ├── test_utils.py

@@ -9,10 +9,12 @@ import logging
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.paginator import InvalidPage, Paginator
+from django.core.paginator import InvalidPage
 from django.template.loader import render_to_string
 from netbox.plugins import PluginTemplateExtension, get_plugin_config
+from utilities.paginator import EnhancedPaginator
 
+from .tables import CFBackrefTable
 from .utils import get_reverse_cf_references
 
 logger = logging.getLogger("netbox_cf_backrefs")
@@ -37,15 +39,25 @@ def _build_extension(model_label: str):
                 return ""
 
             page_size = get_plugin_config("netbox_cf_backrefs", "page_size") or 50
-            paginator = Paginator(refs, page_size)
+            table = CFBackrefTable(refs)
             try:
-                page = paginator.page(request.GET.get(PAGE_QUERY_PARAM, 1))
+                table.paginate(
+                    page=request.GET.get(PAGE_QUERY_PARAM, 1),
+                    per_page=request.GET.get("cfbackrefs_per_page", page_size),
+                    paginator_class=EnhancedPaginator,
+                    orphans=0,
+                )
             except InvalidPage:
-                page = paginator.page(paginator.num_pages)
+                table.paginate(
+                    page=table.paginator.num_pages,
+                    per_page=page_size,
+                    paginator_class=EnhancedPaginator,
+                    orphans=0,
+                )
 
             return render_to_string(
                 "netbox_cf_backrefs/panel.html",
-                {"page": page, "total": len(refs), "object": obj},
+                {"table": table, "total": len(refs), "object": obj},
                 request=request,
             )
 
