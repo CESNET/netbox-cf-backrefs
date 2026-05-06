@@ -30,10 +30,11 @@ def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
         cf_label = cf.label or cf.name
         for source_ct in cf.object_types.all():
             source_model = source_ct.model_class()
-            qs = source_model.objects.filter(
-                **{f"custom_field_data__{cf.name}": target_obj.pk}
-            )
-            for src in qs:
+            if cf.type == "object":
+                lookup = {f"custom_field_data__{cf.name}": target_obj.pk}
+            else:  # "multiobject"
+                lookup = {f"custom_field_data__{cf.name}__contains": [target_obj.pk]}
+            for src in source_model.objects.filter(**lookup):
                 yield Reference(
                     source_object=src,
                     source_model_label=source_ct.model,

@@ -56,3 +56,24 @@ class GetReverseCFReferencesTests(TestCase):
         self.assertEqual(ref.source_model_label, "device")
         self.assertEqual(ref.cf_name, "tech_contact")
         self.assertEqual(ref.cf_label, "Technical contact")
+
+    def test_multiobject_cf_matches_when_pk_in_list(self):
+        make_cf(
+            name="responsible_contacts",
+            label="Responsible contacts",
+            cf_type="multiobject",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        match = self._make_device(
+            "dev-multi-match",
+            {"responsible_contacts": [self.target_a.pk, self.target_b.pk]},
+        )
+        self._make_device(
+            "dev-multi-other", {"responsible_contacts": [self.target_b.pk]}
+        )
+
+        refs = list(get_reverse_cf_references(self.target_a))
+        self.assertEqual(len(refs), 1)
+        self.assertEqual(refs[0].source_object, match)
+        self.assertEqual(refs[0].cf_name, "responsible_contacts")
