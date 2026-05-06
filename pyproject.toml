@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-cf-backrefs"
+version = "0.1.0"
+description = "NetBox plugin: show reverse references from object / multi-object custom fields on the target object's detail page."
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = {text = "Apache-2.0"}
+authors = [{name = "Jan Krupa", email = "jan.krupa@cesnet.cz"}]
+classifiers = [
+    "Framework :: Django",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/cesnet/netbox-cf-backrefs"
+
+[tool.setuptools]
+packages = ["netbox_cf_backrefs", "netbox_cf_backrefs.tests"]
+include-package-data = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.djlint]
+profile = "django"
+indent = 2
