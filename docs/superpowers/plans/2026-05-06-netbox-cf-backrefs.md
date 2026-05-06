@@ -266,7 +266,7 @@ def make_cf(
 
 ```python
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from tenancy.models import Contact, ContactGroup
+from tenancy.models import Contact
 from utilities.testing import TestCase
 
 from netbox_cf_backrefs.utils import Reference, get_reverse_cf_references
@@ -285,9 +285,10 @@ class GetReverseCFReferencesTests(TestCase):
         )
         cls.role = DeviceRole.objects.create(name="R1", slug="r1")
 
-        cls.contact_group = ContactGroup.objects.create(name="G1", slug="g1")
-        cls.target_a = Contact.objects.create(name="Alice", group=cls.contact_group)
-        cls.target_b = Contact.objects.create(name="Bob", group=cls.contact_group)
+        # Contacts have an M2M `groups` relationship in NetBox 4.x; we don't
+        # need a group for these tests, so omit it entirely.
+        cls.target_a = Contact.objects.create(name="Alice")
+        cls.target_b = Contact.objects.create(name="Bob")
 
     def _make_device(self, name: str, cf_data: dict | None = None) -> Device:
         return Device.objects.create(
@@ -779,7 +780,7 @@ End-to-end integration: an actual object detail page should now contain the pane
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from tenancy.models import Contact, ContactGroup
+from tenancy.models import Contact
 from utilities.testing import TestCase
 
 from ._factories import make_cf
@@ -799,8 +800,8 @@ class PanelRenderTests(TestCase):
             manufacturer=manufacturer, model="DT1", slug="dt1"
         )
         cls.role = DeviceRole.objects.create(name="R1", slug="r1")
-        cls.contact_group = ContactGroup.objects.create(name="G1", slug="g1")
-        cls.contact = Contact.objects.create(name="Bob", group=cls.contact_group)
+        # Contact.groups is M2M in NetBox 4.x; not needed for these tests.
+        cls.contact = Contact.objects.create(name="Bob")
 
     def setUp(self):
         self.client.force_login(self.user)
