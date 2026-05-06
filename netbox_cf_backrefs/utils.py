@@ -1,6 +1,6 @@
 """Reverse lookup of object / multi-object custom field references."""
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
 
 from django.contrib.contenttypes.models import ContentType
 from extras.models import CustomField
