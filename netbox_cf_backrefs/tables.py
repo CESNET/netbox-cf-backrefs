@@ -15,7 +15,6 @@ class CFBackrefTable(tables.Table):
         attrs = {"class": "table table-hover object-list"}
         empty_text = _("No references")
         prefix = "cfbackrefs_"
-        fields = ("source_object", "source_model_label", "cf_label")
 
     def render_source_model_label(self, value):
-        return value.capitalize() if isinstance(value, str) else value
+        return value.capitalize()

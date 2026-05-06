@@ -36,6 +36,7 @@ def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
         )
         .exclude(name__in=_excluded_cf_names())
         .exclude(ui_visible="hidden")
+        .prefetch_related("object_types")
     )
 
     for cf in cfs:

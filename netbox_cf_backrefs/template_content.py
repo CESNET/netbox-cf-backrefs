@@ -9,8 +9,8 @@ import logging
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.paginator import InvalidPage
 from django.template.loader import render_to_string
+from django_tables2 import RequestConfig
 from netbox.plugins import PluginTemplateExtension, get_plugin_config
 from utilities.paginator import EnhancedPaginator
 
@@ -20,6 +20,18 @@ from .utils import get_reverse_cf_references
 logger = logging.getLogger("netbox_cf_backrefs")
 
 PAGE_QUERY_PARAM = "cfbackrefs_page"
+PER_PAGE_QUERY_PARAM = "cfbackrefs_per_page"
+
+
+def _resolve_per_page(request, default: int) -> int:
+    raw = request.GET.get(PER_PAGE_QUERY_PARAM)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return value if value >= 1 else default
 
 
 def _build_extension(model_label: str):
@@ -39,27 +51,19 @@ def _build_extension(model_label: str):
                 return ""
 
             page_size = get_plugin_config("netbox_cf_backrefs", "page_size") or 50
-            per_page = request.GET.get("cfbackrefs_per_page", page_size)
+            per_page = _resolve_per_page(request, page_size)
             table = CFBackrefTable(refs)
-            # Apply sort from request so column-header clicks toggle direction.
-            sort = request.GET.get("cfbackrefs_sort")
-            if sort:
-                table.order_by = sort
-            try:
-                table.paginate(
-                    page=request.GET.get(PAGE_QUERY_PARAM, 1),
-                    per_page=per_page,
-                    paginator_class=EnhancedPaginator,
-                    orphans=0,
-                )
-            except InvalidPage:
-                # Out-of-range page: keep the user's per_page selection by
-                # reusing the paginator that paginate() already constructed.
-                table.page = table.paginator.page(table.paginator.num_pages)
+            # RequestConfig binds ?cfbackrefs_sort and ?cfbackrefs_page to the
+            # table (django_tables2 honors Meta.prefix) and catches InvalidPage.
+            RequestConfig(request, paginate={
+                "paginator_class": EnhancedPaginator,
+                "per_page": per_page,
+                "orphans": 0,
+            }).configure(table)
 
             return render_to_string(
                 "netbox_cf_backrefs/panel.html",
-                {"table": table, "total": len(refs), "object": obj},
+                {"table": table, "total": len(refs)},
                 request=request,
             )
 
