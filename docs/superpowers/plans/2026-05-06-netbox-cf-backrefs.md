@@ -335,7 +335,7 @@ Expected: `ModuleNotFoundError: No module named 'netbox_cf_backrefs.utils'` (or 
 ```python
 """Reverse lookup of object / multi-object custom field references."""
 from dataclasses import dataclass
-from typing import Iterator
+from collections.abc import Iterator
 
 from django.contrib.contenttypes.models import ContentType
 from extras.models import CustomField
