@@ -162,3 +162,31 @@ class PanelRenderTests(TestCase):
         # Even though `plain` has no view_device permission, the row is still rendered.
         self.assertIn(device.get_absolute_url(), body)
         self.assertIn("dev-restricted", body)
+
+    def test_panel_does_not_break_object_page_when_utils_raises(self):
+        from unittest.mock import patch
+
+        make_cf(
+            name="tech_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        Device.objects.create(
+            name="dev-broken",
+            site=self.site,
+            device_type=self.device_type,
+            role=self.role,
+            custom_field_data={"tech_contact": self.contact.pk},
+        )
+
+        with patch(
+            "netbox_cf_backrefs.template_content.get_reverse_cf_references",
+            side_effect=RuntimeError("boom"),
+        ):
+            response = self.client.get(
+                reverse("tenancy:contact", args=[self.contact.pk])
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Referenced by Custom Fields", response.content.decode())
