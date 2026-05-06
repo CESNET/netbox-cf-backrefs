@@ -4,6 +4,11 @@ from dataclasses import dataclass
 
 from django.contrib.contenttypes.models import ContentType
 from extras.models import CustomField
+from netbox.plugins import get_plugin_config
+
+
+def _excluded_cf_names() -> set[str]:
+    return set(get_plugin_config("netbox_cf_backrefs", "excluded_custom_fields") or [])
 
 
 @dataclass(frozen=True)
@@ -24,7 +29,7 @@ def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
     cfs = CustomField.objects.filter(
         type__in=("object", "multiobject"),
         related_object_type=target_ct,
-    )
+    ).exclude(name__in=_excluded_cf_names())
 
     for cf in cfs:
         cf_label = cf.label or cf.name

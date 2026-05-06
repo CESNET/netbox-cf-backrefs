@@ -130,3 +130,25 @@ class GetReverseCFReferencesTests(TestCase):
         refs = list(get_reverse_cf_references(self.target_a))
         cf_names = sorted(r.cf_name for r in refs)
         self.assertEqual(cf_names, ["escalation_contact", "tech_contact"])
+
+    def test_excluded_custom_fields_setting_skips_cf(self):
+        from django.test import override_settings
+
+        make_cf(
+            name="hidden_link",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        self._make_device("dev-hidden", {"hidden_link": self.target_a.pk})
+
+        with override_settings(
+            PLUGINS_CONFIG={
+                "netbox_cf_backrefs": {
+                    "page_size": 50,
+                    "excluded_custom_fields": ["hidden_link"],
+                }
+            }
+        ):
+            refs = list(get_reverse_cf_references(self.target_a))
+        self.assertEqual(refs, [])
