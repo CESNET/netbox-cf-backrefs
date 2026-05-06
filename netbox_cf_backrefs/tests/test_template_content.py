@@ -73,3 +73,52 @@ class PanelRenderTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("Referenced by Custom Fields", response.content.decode())
+
+    def test_pagination_with_overridden_page_size(self):
+        import re
+
+        from django.test import override_settings
+
+        make_cf(
+            name="tech_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        for i in range(5):
+            Device.objects.create(
+                name=f"dev-{i}",
+                site=self.site,
+                device_type=self.device_type,
+                role=self.role,
+                custom_field_data={"tech_contact": self.contact.pk},
+            )
+
+        plugins_config = {
+            "netbox_cf_backrefs": {
+                "page_size": 2,
+                "excluded_custom_fields": [],
+            }
+        }
+
+        def _panel_row_count(html: str) -> int:
+            # Locate the panel by its header, then count <tr> inside its <tbody>.
+            match = re.search(
+                r"Referenced by Custom Fields.*?<tbody>(.*?)</tbody>",
+                html,
+                re.DOTALL,
+            )
+            self.assertIsNotNone(match, "Panel <tbody> not found in response")
+            return len(re.findall(r"<tr\b", match.group(1)))
+
+        with override_settings(PLUGINS_CONFIG=plugins_config):
+            response = self.client.get(
+                reverse("tenancy:contact", args=[self.contact.pk])
+            )
+            self.assertEqual(_panel_row_count(response.content.decode()), 2)
+
+            response = self.client.get(
+                reverse("tenancy:contact", args=[self.contact.pk]),
+                {"cfbackrefs_page": 3},
+            )
+            self.assertEqual(_panel_row_count(response.content.decode()), 1)
