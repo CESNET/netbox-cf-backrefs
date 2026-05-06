@@ -122,3 +122,43 @@ class PanelRenderTests(TestCase):
                 {"cfbackrefs_page": 3},
             )
             self.assertEqual(_panel_row_count(response.content.decode()), 1)
+
+    def test_user_without_view_permission_still_sees_referencing_row(self):
+        from core.models import ObjectType
+        from django.contrib.auth import get_user_model
+        from users.models import ObjectPermission
+
+        User = get_user_model()
+        plain = User.objects.create_user("plain", password="p")
+        # Grant view_contact via NetBox's ObjectPermission so the contact detail
+        # view is reachable. Crucially, no view_device permission is granted,
+        # so the user cannot view Device objects directly.
+        contact_view = ObjectPermission.objects.create(
+            name="view_contact", actions=["view"]
+        )
+        contact_view.users.add(plain)
+        contact_view.object_types.add(ObjectType.objects.get_for_model(Contact))
+
+        make_cf(
+            name="tech_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        device = Device.objects.create(
+            name="dev-restricted",
+            site=self.site,
+            device_type=self.device_type,
+            role=self.role,
+            custom_field_data={"tech_contact": self.contact.pk},
+        )
+
+        self.client.force_login(plain)
+        response = self.client.get(
+            reverse("tenancy:contact", args=[self.contact.pk])
+        )
+        body = response.content.decode()
+        self.assertEqual(response.status_code, 200)
+        # Even though `plain` has no view_device permission, the row is still rendered.
+        self.assertIn(device.get_absolute_url(), body)
+        self.assertIn("dev-restricted", body)
