@@ -1023,8 +1023,9 @@ Pagination logic is already in `template_content.py` (Task 8); this task verifie
 
 ```python
     def test_pagination_with_overridden_page_size(self):
+        import re
+
         from django.test import override_settings
-        from bs4 import BeautifulSoup
 
         make_cf(
             name="tech_contact",
@@ -1049,13 +1050,14 @@ Pagination logic is already in `template_content.py` (Task 8); this task verifie
         }
 
         def _panel_row_count(html: str) -> int:
-            soup = BeautifulSoup(html, "html.parser")
-            header = soup.find(
-                "h5", string=lambda s: s and "Referenced by Custom Fields" in s
+            # Locate the panel by its header, then count <tr> inside its <tbody>.
+            match = re.search(
+                r"Referenced by Custom Fields.*?<tbody>(.*?)</tbody>",
+                html,
+                re.DOTALL,
             )
-            self.assertIsNotNone(header, "Panel header missing")
-            table = header.find_parent("div").find("table")
-            return len(table.find("tbody").find_all("tr"))
+            self.assertIsNotNone(match, "Panel <tbody> not found in response")
+            return len(re.findall(r"<tr\b", match.group(1)))
 
         with override_settings(PLUGINS_CONFIG=plugins_config):
             response = self.client.get(
