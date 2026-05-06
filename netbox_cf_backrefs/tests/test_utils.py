@@ -77,3 +77,56 @@ class GetReverseCFReferencesTests(TestCase):
         self.assertEqual(len(refs), 1)
         self.assertEqual(refs[0].source_object, match)
         self.assertEqual(refs[0].cf_name, "responsible_contacts")
+
+    def test_mixed_source_models(self):
+        from circuits.models import Circuit, CircuitType, Provider
+
+        make_cf(
+            name="primary_contact",
+            label="Primary contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device, Circuit],
+        )
+        device = self._make_device("dev-mixed", {"primary_contact": self.target_a.pk})
+
+        provider = Provider.objects.create(name="P1", slug="p1")
+        ctype = CircuitType.objects.create(name="CT1", slug="ct1")
+        circuit = Circuit.objects.create(
+            cid="C-1",
+            provider=provider,
+            type=ctype,
+            custom_field_data={"primary_contact": self.target_a.pk},
+        )
+
+        refs = list(get_reverse_cf_references(self.target_a))
+        sources = {(r.source_object, r.source_model_label) for r in refs}
+        self.assertEqual(
+            sources,
+            {(device, "device"), (circuit, "circuit")},
+        )
+
+    def test_two_cfs_on_same_source_yield_two_rows(self):
+        make_cf(
+            name="tech_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        make_cf(
+            name="escalation_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        self._make_device(
+            "dev-double",
+            {
+                "tech_contact": self.target_a.pk,
+                "escalation_contact": self.target_a.pk,
+            },
+        )
+
+        refs = list(get_reverse_cf_references(self.target_a))
+        cf_names = sorted(r.cf_name for r in refs)
+        self.assertEqual(cf_names, ["escalation_contact", "tech_contact"])
