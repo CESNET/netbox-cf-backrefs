@@ -8,12 +8,9 @@ import logging
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.paginator import InvalidPage
 from django.shortcuts import render
-from django_tables2 import RequestConfig
 from netbox.views.generic import ObjectView
 from utilities.htmx import htmx_partial
-from utilities.paginator import EnhancedPaginator
 from utilities.views import ViewTab, register_model_view
 
 from .filters import apply_filters
@@ -46,18 +43,10 @@ def _make_tab_view(model_class):
             filtered = apply_filters(refs, request.GET)
 
             table = CFBackrefTabTable(filtered, target_pk=instance.pk)
-            try:
-                RequestConfig(request, paginate={
-                    "paginator_class": EnhancedPaginator,
-                    "per_page": int(request.GET.get("per_page", 50) or 50),
-                    "orphans": 0,
-                }).configure(table)
-            except (InvalidPage, ValueError):
-                RequestConfig(request, paginate={
-                    "paginator_class": EnhancedPaginator,
-                    "per_page": 50,
-                    "orphans": 0,
-                }).configure(table)
+            # BaseTable.configure() reads request.user.config['tables.<name>.columns']
+            # and applies saved per-user column prefs from the Configure Table modal,
+            # then paginates via EnhancedPaginator with NetBox's standard per-page handling.
+            table.configure(request)
 
             ctx = {
                 "object": instance,
