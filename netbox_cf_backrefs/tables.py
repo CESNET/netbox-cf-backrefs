@@ -4,7 +4,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from netbox.tables import NetBoxTable
+from netbox.tables import BaseTable
 
 
 class CFBackrefTable(tables.Table):
@@ -37,7 +37,7 @@ def _peer_list_url(reference, target_pk):
     return f"{list_url}?cf_{reference.cf_name}={target_pk}"
 
 
-class CFBackrefTabTable(NetBoxTable):
+class CFBackrefTabTable(BaseTable):
     """Full list-view-style table used by the CF Backrefs tab.
 
     Subclasses NetBoxTable so the Configure-Table modal and per-user column
@@ -57,9 +57,7 @@ class CFBackrefTabTable(NetBoxTable):
     cf_label = tables.Column(verbose_name=_("Custom field"))
     cf_type = tables.Column(verbose_name=_("CF type"))
 
-    actions = None
-
-    class Meta(NetBoxTable.Meta):
+    class Meta(BaseTable.Meta):
         attrs = {"class": "table table-hover object-list"}
         empty_text = _("No references")
         fields = ("pivot", "source_object", "source_model_label", "cf_label", "cf_type")
