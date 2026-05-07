@@ -18,5 +18,11 @@ class NetBoxCFBackrefsConfig(PluginConfig):
         "excluded_custom_fields": [],
     }
 
+    def ready(self):
+        super().ready()
+        # Importing the views module triggers register_model_view for each
+        # installed content type. Same import-time pattern as template_content.
+        from . import views  # noqa: F401
+
 
 config = NetBoxCFBackrefsConfig

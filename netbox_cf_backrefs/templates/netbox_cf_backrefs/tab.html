@@ -1,0 +1,19 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load i18n %}
+{% block content %}
+  <div class="row">
+    <div class="col col-md-12">
+      <div class="card">
+        <h5 class="card-header">{% trans 'CF Backrefs' %} ({{ total }})</h5>
+        <div id="cf-backrefs-table"
+             hx-target="this"
+             hx-select="#cf-backrefs-table"
+             hx-swap="outerHTML">
+          <div class="table-responsive">{% render_table table 'inc/table.html' %}</div>
+          {% include 'inc/paginator.html' with paginator=table.paginator page=table.page %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
