@@ -57,6 +57,7 @@ class GetReverseCFReferencesTests(TestCase):
         self.assertEqual(ref.source_model_label, "device")
         self.assertEqual(ref.cf_name, "tech_contact")
         self.assertEqual(ref.cf_label, "Technical contact")
+        self.assertEqual(ref.cf_type, "object")
 
     def test_multiobject_cf_matches_when_pk_in_list(self):
         make_cf(
@@ -78,6 +79,7 @@ class GetReverseCFReferencesTests(TestCase):
         self.assertEqual(len(refs), 1)
         self.assertEqual(refs[0].source_object, match)
         self.assertEqual(refs[0].cf_name, "responsible_contacts")
+        self.assertEqual(refs[0].cf_type, "multiobject")
 
     def test_mixed_source_models(self):
         from circuits.models import Circuit, CircuitType, Provider

@@ -20,6 +20,7 @@ class Reference:
     source_model_label: str
     cf_name: str
     cf_label: str
+    cf_type: str
 
 
 def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
@@ -59,4 +60,5 @@ def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
                     source_model_label=source_ct.model,
                     cf_name=cf.name,
                     cf_label=cf_label,
+                    cf_type=cf.type,
                 )
