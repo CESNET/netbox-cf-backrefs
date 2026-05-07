@@ -1,5 +1,6 @@
 {% extends 'generic/object.html' %}
 {% load render_table from django_tables2 %}
+{% load helpers %}
 {% load i18n %}
 {% block content %}
   <div class="row">
@@ -26,4 +27,7 @@
       </div>
     </div>
   </div>
+  {% if request.user.is_authenticated %}
+    {% table_config_form table table_name=table.name %}
+  {% endif %}
 {% endblock content %}

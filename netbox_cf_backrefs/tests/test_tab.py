@@ -128,14 +128,17 @@ class CFBackrefsTabRenderingTests(TestCase):
         self.assertIn("CF Backrefs (2)", narrowed)
         self.assertIn("Matching 1 of 2", narrowed)
 
-    def test_configure_table_button_and_filter_sidebar_absent(self):
-        # Phase 4 stripped both. Lock that in.
+    def test_filter_sidebar_absent_but_configure_table_present(self):
+        # Phase 4 stripped the filter sidebar. Configure Table is back per
+        # user request — rendered by the built-in inc/table_controls_htmx.html
+        # via the table_modal context key.
         self._grant_view_contact(self.unprivileged_user)
         self.client.force_login(self.unprivileged_user)
         body = self.client.get(self.tab_url).content.decode()
-        self.assertNotIn("Configure Table", body)
-        self.assertNotIn("CFBackrefTabTable_config", body)
-        # Sidebar dropdowns gone.
+        # Configure Table button + modal are present.
+        self.assertIn("Configure Table", body)
+        self.assertIn("CFBackrefTabTable_config", body)
+        # Sidebar dropdowns stay gone.
         self.assertNotIn('name="source_type"', body)
         self.assertNotIn('name="cf_name"', body)
         self.assertNotIn('name="cf_type"', body)

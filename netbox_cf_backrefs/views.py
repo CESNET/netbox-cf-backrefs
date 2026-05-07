@@ -68,6 +68,9 @@ def _make_tab_view(model_class):
                 "total": len(refs),
                 "matched": len(filtered),
                 "current_q": request.GET.get("q", ""),
+                # Triggers the Configure Table button inside
+                # inc/table_controls_htmx.html and binds the modal id.
+                "table_modal": f"{table.name}_config",
             }
             template = self.partial_template_name if htmx_partial(request) else self.template_name
             return render(request, template, ctx)
