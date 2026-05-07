@@ -1,7 +1,7 @@
 {% load render_table from django_tables2 %}
-<div id="cf-backrefs-table"
+<div id="object_list"
      hx-target="this"
-     hx-select="#cf-backrefs-table"
+     hx-select="#object_list"
      hx-swap="outerHTML">
   <div class="table-responsive">{% render_table table 'inc/table.html' %}</div>
   {% include 'inc/paginator.html' with paginator=table.paginator page=table.page %}

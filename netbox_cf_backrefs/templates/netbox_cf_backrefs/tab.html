@@ -14,22 +14,11 @@
               {% endblocktrans %}
             </div>
           {% endif %}
-          <form method="get" class="row g-2 mb-3">
-            <div class="col-md-9">
-              <input type="search"
-                     name="q"
-                     value="{{ current_q }}"
-                     class="form-control"
-                     placeholder="{% trans 'Quick search' %}" />
-            </div>
-            <div class="col-md-3">
-              <button type="submit" class="btn btn-primary w-100">{% trans 'Search' %}</button>
-            </div>
-          </form>
+          {% include 'inc/table_controls_htmx.html' %}
         </div>
-        <div id="cf-backrefs-table"
+        <div id="object_list"
              hx-target="this"
-             hx-select="#cf-backrefs-table"
+             hx-select="#object_list"
              hx-swap="outerHTML">
           <div class="table-responsive">{% render_table table 'inc/table.html' %}</div>
           {% include 'inc/paginator.html' with paginator=table.paginator page=table.page %}

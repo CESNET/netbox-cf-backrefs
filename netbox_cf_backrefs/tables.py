@@ -47,11 +47,6 @@ class CFBackrefTabTable(BaseTable):
     leading `pivot` column renders the per-row filter icon.
     """
 
-    pivot = tables.Column(
-        empty_values=(),
-        verbose_name="",
-        orderable=False,
-    )
     source_object = tables.Column(
         linkify=True,
         verbose_name=_("Source object"),
@@ -60,25 +55,40 @@ class CFBackrefTabTable(BaseTable):
     source_model_label = tables.Column(verbose_name=_("Source type"), orderable=False)
     cf_label = tables.Column(verbose_name=_("Custom field"), orderable=False)
     cf_type = tables.Column(verbose_name=_("CF type"), orderable=False)
+    actions = tables.Column(
+        empty_values=(),
+        verbose_name=_("Actions"),
+        orderable=False,
+        attrs={"td": {"class": "text-end text-nowrap noprint"}},
+    )
 
     class Meta(BaseTable.Meta):
         attrs = {"class": "table table-hover object-list"}
         empty_text = _("No references")
-        fields = ("pivot", "source_object", "source_model_label", "cf_label", "cf_type")
+        fields = ("source_object", "source_model_label", "cf_label", "cf_type", "actions")
         default_columns = (
-            "pivot", "source_object", "source_model_label", "cf_label", "cf_type",
+            "source_object", "source_model_label", "cf_label", "cf_type", "actions",
         )
 
     def __init__(self, *args, target_pk=None, **kwargs):
         self._target_pk = target_pk
         super().__init__(*args, **kwargs)
 
-    def render_pivot(self, record):
+    def render_actions(self, record):
         url = _peer_list_url(record, self._target_pk)
         if url is None:
-            return mark_safe('<span class="text-muted"><i class="mdi mdi-filter"></i></span>')
+            return mark_safe(
+                '<span class="btn-group">'
+                '<span class="btn btn-sm btn-outline-secondary disabled" aria-hidden="true">'
+                '<i class="mdi mdi-filter"></i></span></span>'
+            )
         return format_html(
-            '<a href="{}" title="Show peers"><i class="mdi mdi-filter"></i></a>', url
+            '<span class="btn-group">'
+            '<a class="btn btn-sm btn-primary" href="{}" type="button" '
+            'aria-label="{}" title="{}">'
+            '<i class="mdi mdi-filter"></i></a></span>',
+            url, _("Show peers referencing this target"),
+            _("Show peers referencing this target"),
         )
 
     def render_source_model_label(self, value):

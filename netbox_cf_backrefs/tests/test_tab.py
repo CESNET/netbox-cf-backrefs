@@ -84,7 +84,7 @@ class CFBackrefsTabRenderingTests(TestCase):
         # Partial does NOT include the parent layout chrome.
         self.assertNotIn('<html', body)
         # Partial DOES include the rows + paginator wrapper.
-        self.assertIn('id="cf-backrefs-table"', body)
+        self.assertIn('id="object_list"', body)
         self.assertIn(self.device.get_absolute_url(), body)
 
     def test_full_response_wraps_table_in_swap_target(self):
@@ -92,7 +92,7 @@ class CFBackrefsTabRenderingTests(TestCase):
         self.client.force_login(self.unprivileged_user)
         response = self.client.get(self.tab_url)
         body = response.content.decode()
-        self.assertIn('id="cf-backrefs-table"', body)
+        self.assertIn('id="object_list"', body)
 
     def test_quick_search_narrows_results(self):
         Device.objects.create(
