@@ -190,3 +190,47 @@ class PanelRenderTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("Referenced by Custom Fields", response.content.decode())
+
+    def test_panel_does_not_show_hidden_or_excluded_cfs(self):
+        from django.test import override_settings
+
+        # Hidden CF — visible in tab, NOT in panel.
+        make_cf(
+            name="hidden_link",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+            ui_visible="hidden",
+        )
+        # Excluded CF — visible in tab, NOT in panel.
+        make_cf(
+            name="excluded_link",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        Device.objects.create(
+            name="cfb-panel-regression",
+            site=self.site, device_type=self.device_type, role=self.role,
+            custom_field_data={
+                "hidden_link": self.contact.pk,
+                "excluded_link": self.contact.pk,
+            },
+        )
+
+        with override_settings(
+            PLUGINS_CONFIG={
+                "netbox_cf_backrefs": {
+                    "page_size": 50,
+                    "excluded_custom_fields": ["excluded_link"],
+                }
+            }
+        ):
+            response = self.client.get(
+                reverse("tenancy:contact", args=[self.contact.pk])
+            )
+
+        body = response.content.decode()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("hidden_link", body)
+        self.assertNotIn("excluded_link", body)

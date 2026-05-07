@@ -45,6 +45,14 @@ Restart NetBox.
 - **Restart required when adding/removing object-CFs** — the plugin discovers CF target models at NetBox startup. Adding a new CF later requires a NetBox restart for it to take effect on the panel.
 - **Empty panels are hidden.** If no objects currently reference the target via CFs, the panel is not rendered.
 
+## CF Backrefs tab
+
+In addition to the inline panel, every object detail page exposes a **CF Backrefs** tab (`/<app>/<model>/<pk>/cf-backrefs/`) when at least one CF references the object. The tab uses NetBox's standard list-view chrome — sortable columns, filter sidebar, quick search, Configure Table modal, per-user column preferences, htmx-paginated rows.
+
+The tab additionally exposes a per-row filter icon (`mdi mdi-filter`) that pivots to the source model's NetBox list view filtered by the CF that produced the row, e.g. `/dcim/devices/?cf_tech_contact=<contact_pk>` ("show me every Device that references this same target via this CF").
+
+**Important:** the tab deliberately ignores the `excluded_custom_fields` setting and the CF-level `ui_visible='hidden'` flag. Anyone with `view_<parent_model>` permission can see hidden / excluded CF references via the tab. The panel honors both filters and is the curated view; the tab is the "everything" view. If your hidden CFs carry sensitive data, do not rely on the tab to hide them.
+
 ## Development
 
 ```bash
