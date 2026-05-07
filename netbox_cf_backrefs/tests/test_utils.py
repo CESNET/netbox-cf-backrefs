@@ -195,3 +195,51 @@ class GetReverseCFReferencesTests(TestCase):
         self.assertTrue(any("device" in m for m in captured.output))
         # Sanity: device still exists; we only simulated an unloadable model.
         self.assertEqual(Device.objects.filter(pk=device.pk).count(), 1)
+
+    def test_apply_visibility_filters_false_returns_hidden_and_excluded(self):
+        from django.test import override_settings
+
+        # Hidden CF that the panel-style call would skip
+        make_cf(
+            name="hidden_link",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+            ui_visible="hidden",
+        )
+        # Excluded CF (also panel-skipped)
+        make_cf(
+            name="excluded_link",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        self._make_device(
+            "dev-hidden-and-excluded",
+            {"hidden_link": self.target_a.pk, "excluded_link": self.target_a.pk},
+        )
+
+        with override_settings(
+            PLUGINS_CONFIG={
+                "netbox_cf_backrefs": {
+                    "page_size": 50,
+                    "excluded_custom_fields": ["excluded_link"],
+                }
+            }
+        ):
+            filtered = list(
+                get_reverse_cf_references(self.target_a, apply_visibility_filters=True)
+            )
+            unfiltered = list(
+                get_reverse_cf_references(self.target_a, apply_visibility_filters=False)
+            )
+
+        filtered_names = {r.cf_name for r in filtered}
+        unfiltered_names = {r.cf_name for r in unfiltered}
+
+        # filtered: panel behavior — both hidden and excluded suppressed
+        self.assertNotIn("hidden_link", filtered_names)
+        self.assertNotIn("excluded_link", filtered_names)
+        # unfiltered: tab behavior — both surface
+        self.assertIn("hidden_link", unfiltered_names)
+        self.assertIn("excluded_link", unfiltered_names)

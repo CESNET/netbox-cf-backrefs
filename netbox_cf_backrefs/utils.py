@@ -23,22 +23,25 @@ class Reference:
     cf_type: str
 
 
-def get_reverse_cf_references(target_obj) -> Iterator[Reference]:
+def get_reverse_cf_references(
+    target_obj,
+    *,
+    apply_visibility_filters: bool = True,
+) -> Iterator[Reference]:
     """Yield Reference rows for every object/multi-object CF pointing to `target_obj`.
 
-    Uses live JSONField queries against each source model's `custom_field_data`.
+    With `apply_visibility_filters=True` (default) skips CFs whose name is in
+    `excluded_custom_fields` and CFs marked `ui_visible='hidden'`. The tab view
+    passes `False` to surface the unfiltered set.
     """
     target_ct = ContentType.objects.get_for_model(target_obj)
 
-    cfs = (
-        CustomField.objects.filter(
-            type__in=("object", "multiobject"),
-            related_object_type=target_ct,
-        )
-        .exclude(name__in=_excluded_cf_names())
-        .exclude(ui_visible="hidden")
-        .prefetch_related("object_types")
-    )
+    cfs = CustomField.objects.filter(
+        type__in=("object", "multiobject"),
+        related_object_type=target_ct,
+    ).prefetch_related("object_types")
+    if apply_visibility_filters:
+        cfs = cfs.exclude(name__in=_excluded_cf_names()).exclude(ui_visible="hidden")
 
     for cf in cfs:
         cf_label = cf.label or cf.name
