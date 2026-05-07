@@ -38,13 +38,13 @@ def _peer_list_url(reference, target_pk):
 
 
 class CFBackrefTabTable(BaseTable):
-    """Full list-view-style table used by the CF Backrefs tab.
+    """Minimal list-view table used by the CF Backrefs tab.
 
-    Subclasses NetBox's `BaseTable` (the intermediate base — BS5 styling +
-    column-pref machinery, no model-bound `pk`/`id`/`actions`/CF/CL columns)
-    because rows are `Reference` dataclasses, not Django model instances.
-    The Configure-Table modal is wired in a later task. The leading `pivot`
-    column renders the per-row filter icon.
+    Mirrors the visual baseline of `netbox_custom_objects`'s combined-tabs
+    view — no sortable column headers, no Configure-Table modal, no filter
+    sidebar. Rows are `Reference` dataclasses (not Django model instances),
+    which is why the base is `BaseTable` rather than `NetBoxTable`. The
+    leading `pivot` column renders the per-row filter icon.
     """
 
     pivot = tables.Column(
@@ -55,10 +55,11 @@ class CFBackrefTabTable(BaseTable):
     source_object = tables.Column(
         linkify=True,
         verbose_name=_("Source object"),
+        orderable=False,
     )
-    source_model_label = tables.Column(verbose_name=_("Source type"))
-    cf_label = tables.Column(verbose_name=_("Custom field"))
-    cf_type = tables.Column(verbose_name=_("CF type"))
+    source_model_label = tables.Column(verbose_name=_("Source type"), orderable=False)
+    cf_label = tables.Column(verbose_name=_("Custom field"), orderable=False)
+    cf_type = tables.Column(verbose_name=_("CF type"), orderable=False)
 
     class Meta(BaseTable.Meta):
         attrs = {"class": "table table-hover object-list"}

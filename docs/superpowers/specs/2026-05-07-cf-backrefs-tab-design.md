@@ -13,7 +13,7 @@ The v0.1.1 panel is a fixed slot with three columns and no controls. Users viewi
 
 ## Goal
 
-Add a separate detail-page tab `CF Backrefs` to every CF-target object type, with the full NetBox list-view chrome: filter sidebar, quick search, "Configure Table" modal, per-user column prefs, htmx-paginated table, and a per-row pivot button. The panel stays unchanged.
+Add a minimal detail-page tab `CF Backrefs` to every CF-target object type. Visual baseline mirrors `netbox_custom_objects`'s combined-tabs view (`/opt/netbox-custom-objects/netbox_custom_objects/tab_views.py:169-240`): quick-search input, htmx-paginated table, single per-row filter-icon action. **No** filter sidebar, **no** Configure-Table modal, **no** sortable column headers — by design. The panel stays unchanged.
 
 ## Non-goals
 
@@ -42,11 +42,15 @@ A NetBox detail-page tab registered via `@register_model_view(model_class, name=
 | 4 | Custom field | `cf.label` (falls back to `cf.name`) |
 | 5 | CF type | `Object` or `Multi-object` |
 
-**Filter sidebar:** three dropdowns — Source type, Custom field name, CF type. Filtering is in-memory (Python comprehensions over `list[Reference]`), not a Django `FilterSet`.
+**Header:** `CF Backrefs (N)` where `N` is the unfiltered ref count — always equal to the tab badge. When a quick-search narrows the table, a `Matching X of Y` subtitle appears under the header.
 
-**Quick search:** case-insensitive substring across Source object str repr, Source model label, CF label, CF name.
+**Quick search:** case-insensitive substring across Source object str repr, Source model label, CF label, CF name. Submitted via `?q=`.
 
-**Configure Table modal:** standard NetBox modal driven by `NetBoxTable` subclass — per-user column visibility prefs are persisted automatically.
+**Sortable columns:** none. All `tables.Column(orderable=False)`. Mirrors `netbox_custom_objects` baseline; sidesteps a previous descending-sort bug.
+
+**Configure Table / per-user column prefs:** removed. The earlier modal didn't persist correctly with our non-model `Reference` rows; users explicitly asked for the simpler view.
+
+**Filter sidebar:** removed. Quick search is the only narrowing UI.
 
 **Pagination:** `EnhancedPaginator` with `orphans=0`. Tab uses NetBox-stock `?page=N` and `?per_page=N` because the URL is dedicated (no sibling paginators on the same URL).
 

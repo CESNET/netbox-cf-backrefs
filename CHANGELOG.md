@@ -6,7 +6,7 @@
 - Pagination switched to `EnhancedPaginator` with prefixed query params `?cfbackrefs_page=N` and `?cfbackrefs_per_page=N` to avoid collisions with sibling plugins' paginators on the same object page.
 - Per-page dropdown added to the panel paginator (uses `page_size` setting as the default).
 - `orphans=0` so panels with few rows still paginate predictably.
-- New `CF Backrefs` detail-page tab on every CF target object. Adds list-view chrome (filter sidebar, quick search, Configure Table modal, per-user column prefs, htmx pagination, sortable columns) and a per-row filter-icon pivot to `/<app>/<model>/?cf_<name>=<target_pk>`. Tab uses standard NetBox tab permissions (`view_<parent_model>`) and deliberately surfaces hidden / excluded CFs that the panel suppresses.
+- New minimal `CF Backrefs` detail-page tab on every CF target object. Visual baseline mirrors `netbox_custom_objects`'s combined-tabs view: quick-search input, htmx-paginated table, and a single per-row filter-icon action pivoting to `/<app>/<model>/?cf_<name>=<target_pk>`. No filter sidebar, no Configure-Table modal, no sortable headers — by design. Tab uses standard NetBox tab permissions (`view_<parent_model>`) and deliberately surfaces hidden / excluded CFs that the panel suppresses.
 
 ## 0.1.0 — 2026-05-06
 

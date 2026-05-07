@@ -47,9 +47,9 @@ Restart NetBox.
 
 ## CF Backrefs tab
 
-In addition to the inline panel, every object detail page exposes a **CF Backrefs** tab (`/<app>/<model>/<pk>/cf-backrefs/`) when at least one CF references the object. The tab uses NetBox's standard list-view chrome — sortable columns, filter sidebar, quick search, Configure Table modal, per-user column preferences, htmx-paginated rows.
+In addition to the inline panel, every object detail page exposes a **CF Backrefs** tab (`/<app>/<model>/<pk>/cf-backrefs/`) when at least one CF references the object. The tab is intentionally minimal — it mirrors `netbox_custom_objects`'s combined-tabs visual baseline: a quick-search input, an htmx-paginated table, and a single per-row filter-icon action. No filter sidebar, no Configure-Table modal, no sortable headers.
 
-The tab additionally exposes a per-row filter icon (`mdi mdi-filter`) that pivots to the source model's NetBox list view filtered by the CF that produced the row, e.g. `/dcim/devices/?cf_tech_contact=<contact_pk>` ("show me every Device that references this same target via this CF").
+The per-row filter icon (`mdi mdi-filter`) pivots to the source model's NetBox list view filtered by the CF that produced the row, e.g. `/dcim/devices/?cf_tech_contact=<contact_pk>` ("show me every Device that references this same target via this CF").
 
 **Important:** the tab deliberately ignores the `excluded_custom_fields` setting and the CF-level `ui_visible='hidden'` flag. Anyone with `view_<parent_model>` permission can see hidden / excluded CF references via the tab. The panel honors both filters and is the curated view; the tab is the "everything" view. If your hidden CFs carry sensitive data, do not rely on the tab to hide them.
 
