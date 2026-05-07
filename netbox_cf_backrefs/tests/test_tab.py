@@ -145,3 +145,13 @@ class CFBackrefsTabRenderingTests(TestCase):
         self.assertIn('value="device"', body)
         # Quick search input is present.
         self.assertIn('name="q"', body)
+
+    def test_configure_table_button_and_modal_present(self):
+        self._grant_view_contact(self.unprivileged_user)
+        self.client.force_login(self.unprivileged_user)
+        response = self.client.get(self.tab_url)
+        body = response.content.decode()
+        # Configure-Table button visible to authenticated users.
+        self.assertIn("Configure Table", body)
+        # NetBox attaches the modal id from the table class name.
+        self.assertIn("CFBackrefTabTable_config", body)

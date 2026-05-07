@@ -1,5 +1,6 @@
 {% extends 'generic/object.html' %}
 {% load render_table from django_tables2 %}
+{% load helpers %}
 {% load i18n %}
 {% block content %}
   <div class="row">
@@ -7,6 +8,16 @@
       <div class="card">
         <h5 class="card-header">{% trans 'CF Backrefs' %} ({{ total }})</h5>
         <div class="card-body">
+          {% if request.user.is_authenticated %}
+            <div class="d-flex justify-content-end mb-2">
+              <button type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#{{ table_modal }}"
+                      class="btn btn-sm btn-outline-secondary">
+                <i class="mdi mdi-cog"></i> {% trans 'Configure Table' %}
+              </button>
+            </div>
+          {% endif %}
           <form method="get" class="row g-2 mb-3">
             <div class="col-md-9">
               <input type="search"
@@ -70,4 +81,7 @@
       </div>
     </div>
   </div>
+  {% if request.user.is_authenticated %}
+    {% table_config_form table table_name=table.name %}
+  {% endif %}
 {% endblock content %}

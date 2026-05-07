@@ -67,6 +67,7 @@ def _make_tab_view(model_class):
                 "object": instance,
                 "tab": self.tab,
                 "table": table,
+                "table_modal": f"{table.name}_config",
                 "total": len(filtered),
                 "source_type_options": source_type_options,
                 "cf_name_options": cf_name_options,
