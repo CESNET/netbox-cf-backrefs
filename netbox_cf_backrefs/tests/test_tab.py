@@ -74,3 +74,22 @@ class CFBackrefsTabRenderingTests(TestCase):
     def test_anonymous_user_redirected_or_forbidden(self):
         response = self.client.get(self.tab_url)
         self.assertIn(response.status_code, (302, 403))
+
+    def test_htmx_partial_returns_rows_only(self):
+        self._grant_view_contact(self.unprivileged_user)
+        self.client.force_login(self.unprivileged_user)
+        response = self.client.get(self.tab_url, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        # Partial does NOT include the parent layout chrome.
+        self.assertNotIn('<html', body)
+        # Partial DOES include the rows + paginator wrapper.
+        self.assertIn('id="cf-backrefs-table"', body)
+        self.assertIn(self.device.get_absolute_url(), body)
+
+    def test_full_response_wraps_table_in_swap_target(self):
+        self._grant_view_contact(self.unprivileged_user)
+        self.client.force_login(self.unprivileged_user)
+        response = self.client.get(self.tab_url)
+        body = response.content.decode()
+        self.assertIn('id="cf-backrefs-table"', body)
