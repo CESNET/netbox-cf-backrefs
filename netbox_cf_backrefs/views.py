@@ -53,10 +53,9 @@ def _make_tab_view(model_class):
                 "tab": self.tab,
                 "table": table,
                 # `total` is the unfiltered count so the header always matches
-                # the tab badge; `matched` reflects current quick-search.
+                # the tab badge — narrowing is reflected in the paginator's
+                # "Showing 1-N of M" footer rather than a separate subtitle.
                 "total": len(refs),
-                "matched": len(filtered),
-                "current_q": request.GET.get("q", ""),
                 # Triggers the Configure Table button inside
                 # inc/table_controls_htmx.html and binds the modal id.
                 "table_modal": f"{table.name}_config",

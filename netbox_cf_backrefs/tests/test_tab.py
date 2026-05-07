@@ -111,6 +111,8 @@ class CFBackrefsTabRenderingTests(TestCase):
         # Two Devices both reference the contact via tech_contact. Header
         # `(N)` must equal the unfiltered count, regardless of any active
         # quick-search narrowing — same number the tab badge shows.
+        # Narrowing is surfaced by the paginator footer (`Showing 1-N of M`),
+        # not by an extra subtitle.
         Device.objects.create(
             name="cfbtab-second",
             site=self.site, device_type=self.device_type, role=self.role,
@@ -122,11 +124,8 @@ class CFBackrefsTabRenderingTests(TestCase):
         unfiltered = self.client.get(self.tab_url).content.decode()
         self.assertIn("CF Backrefs (2)", unfiltered)
 
-        # With a narrowing search the header count stays at the unfiltered
-        # value and a "Matching X of Y" subtitle reports the narrowing.
         narrowed = self.client.get(self.tab_url, {"q": "cfbtab-second"}).content.decode()
         self.assertIn("CF Backrefs (2)", narrowed)
-        self.assertIn("Matching 1 of 2", narrowed)
 
     def test_filter_sidebar_absent_but_configure_table_present(self):
         # Phase 4 stripped the filter sidebar. Configure Table is back per

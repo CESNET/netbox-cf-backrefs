@@ -42,9 +42,9 @@ A NetBox detail-page tab registered via `@register_model_view(model_class, name=
 | 4 | Custom field | `cf.label` (falls back to `cf.name`) |
 | 5 | CF type | `Object` or `Multi-object` |
 
-**Header:** `CF Backrefs (N)` where `N` is the unfiltered ref count — always equal to the tab badge. When a quick-search narrows the table, a `Matching X of Y` subtitle appears under the header.
+**Header:** `CF Backrefs (N)` where `N` is the unfiltered ref count — always equal to the tab badge. Narrowing from the quick-search box is surfaced by the standard paginator footer (`Showing 1-N of M`), not by a separate subtitle.
 
-**Quick search:** case-insensitive substring across Source object str repr, Source model label, CF label, CF name. Submitted via `?q=`.
+**Quick search:** case-insensitive substring across Source object str repr, Source model label, CF label, CF name. Wired via NetBox's stock `inc/table_controls_htmx.html` (htmx live-search hitting the same URL with `?q=`). Per NetBox stock behavior, the URL is **not** push-state-updated as the user types — matches every other NetBox list view.
 
 **Sortable columns:** none. All `tables.Column(orderable=False)`. Mirrors `netbox_custom_objects` baseline; sidesteps a previous descending-sort bug.
 
