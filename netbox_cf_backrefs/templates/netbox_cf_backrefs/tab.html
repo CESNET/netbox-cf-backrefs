@@ -3,15 +3,69 @@
 {% load i18n %}
 {% block content %}
   <div class="row">
-    <div class="col col-md-12">
+    <div class="col col-md-9">
       <div class="card">
         <h5 class="card-header">{% trans 'CF Backrefs' %} ({{ total }})</h5>
+        <div class="card-body">
+          <form method="get" class="row g-2 mb-3">
+            <div class="col-md-9">
+              <input type="search"
+                     name="q"
+                     value="{{ current_q }}"
+                     class="form-control"
+                     placeholder="{% trans 'Quick search' %}" />
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-primary w-100">{% trans 'Search' %}</button>
+            </div>
+          </form>
+        </div>
         <div id="cf-backrefs-table"
              hx-target="this"
              hx-select="#cf-backrefs-table"
              hx-swap="outerHTML">
           <div class="table-responsive">{% render_table table 'inc/table.html' %}</div>
           {% include 'inc/paginator.html' with paginator=table.paginator page=table.page %}
+        </div>
+      </div>
+    </div>
+    <div class="col col-md-3">
+      <div class="card">
+        <h5 class="card-header">{% trans 'Filters' %}</h5>
+        <div class="card-body">
+          <form method="get">
+            {% if current_q %}<input type="hidden" name="q" value="{{ current_q }}" />{% endif %}
+            <div class="mb-3">
+              <label class="form-label">{% trans 'Source type' %}</label>
+              <select name="source_type" class="form-select">
+                <option value="">{% trans 'Any' %}</option>
+                {% for opt in source_type_options %}
+                  <option value="{{ opt }}"
+                          {% if opt == current_source_type %}selected{% endif %}>{{ opt|capfirst }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{% trans 'Custom field' %}</label>
+              <select name="cf_name" class="form-select">
+                <option value="">{% trans 'Any' %}</option>
+                {% for name, label in cf_name_options %}
+                  <option value="{{ name }}"
+                          {% if name == current_cf_name %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{% trans 'CF type' %}</label>
+              <select name="cf_type" class="form-select">
+                <option value="">{% trans 'Any' %}</option>
+                {% for opt in cf_type_options %}
+                  <option value="{{ opt }}" {% if opt == current_cf_type %}selected{% endif %}>{{ opt|capfirst }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">{% trans 'Apply' %}</button>
+          </form>
         </div>
       </div>
     </div>

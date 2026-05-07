@@ -93,3 +93,55 @@ class CFBackrefsTabRenderingTests(TestCase):
         response = self.client.get(self.tab_url)
         body = response.content.decode()
         self.assertIn('id="cf-backrefs-table"', body)
+
+    def test_filter_by_source_type_via_querystring(self):
+        from circuits.models import Circuit, CircuitType, Provider
+        provider = Provider.objects.create(name="cfbtab-prov", slug="cfbtab-prov")
+        ctype = CircuitType.objects.create(name="cfbtab-ct", slug="cfbtab-ct")
+        # Add a circuit ref so unfiltered count is 2 but ?source_type=device returns 1.
+        make_cf(
+            name="primary_contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device, Circuit],
+        )
+        Circuit.objects.create(
+            cid="cfbtab-c1", provider=provider, type=ctype,
+            custom_field_data={"primary_contact": self.contact.pk},
+        )
+        Device.objects.create(
+            name="cfbtab-dev-2",
+            site=self.site, device_type=self.device_type, role=self.role,
+            custom_field_data={"primary_contact": self.contact.pk},
+        )
+
+        self._grant_view_contact(self.unprivileged_user)
+        self.client.force_login(self.unprivileged_user)
+        response = self.client.get(self.tab_url, {"source_type": "device"})
+        body = response.content.decode()
+        self.assertNotIn("cfbtab-c1", body)
+        self.assertIn("cfbtab-dev-2", body)
+
+    def test_quick_search_narrows_results(self):
+        Device.objects.create(
+            name="cfbtab-other",
+            site=self.site, device_type=self.device_type, role=self.role,
+            custom_field_data={"tech_contact": self.contact.pk},
+        )
+        self._grant_view_contact(self.unprivileged_user)
+        self.client.force_login(self.unprivileged_user)
+        response = self.client.get(self.tab_url, {"q": "cfbtab-other"})
+        body = response.content.decode()
+        self.assertIn("cfbtab-other", body)
+        self.assertNotIn("cfbtab-dev-1", body)
+
+    def test_sidebar_options_built_from_unfiltered_refs(self):
+        self._grant_view_contact(self.unprivileged_user)
+        self.client.force_login(self.unprivileged_user)
+        response = self.client.get(self.tab_url)
+        body = response.content.decode()
+        # Source type dropdown lists "device" because the unfiltered refs
+        # include at least one Device row.
+        self.assertIn('value="device"', body)
+        # Quick search input is present.
+        self.assertIn('name="q"', body)

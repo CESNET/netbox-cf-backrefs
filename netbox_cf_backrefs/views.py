@@ -59,11 +59,22 @@ def _make_tab_view(model_class):
                     "orphans": 0,
                 }).configure(table)
 
+            source_type_options = sorted({r.source_model_label for r in refs})
+            cf_name_options = sorted({(r.cf_name, r.cf_label) for r in refs})
+            cf_type_options = sorted({r.cf_type for r in refs})
+
             ctx = {
                 "object": instance,
                 "tab": self.tab,
                 "table": table,
                 "total": len(filtered),
+                "source_type_options": source_type_options,
+                "cf_name_options": cf_name_options,
+                "cf_type_options": cf_type_options,
+                "current_source_type": request.GET.get("source_type", ""),
+                "current_cf_name": request.GET.get("cf_name", ""),
+                "current_cf_type": request.GET.get("cf_type", ""),
+                "current_q": request.GET.get("q", ""),
             }
             template = self.partial_template_name if htmx_partial(request) else self.template_name
             return render(request, template, ctx)
