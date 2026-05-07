@@ -64,7 +64,6 @@ def _make_tab_view(model_class):
                 "tab": self.tab,
                 "table": table,
                 "total": len(filtered),
-                "all_refs": refs,
             }
             template = self.partial_template_name if htmx_partial(request) else self.template_name
             return render(request, template, ctx)
@@ -82,7 +81,11 @@ def _register_tabs():
             continue
         try:
             model_class = ct.model_class()
-        except Exception:
+        except Exception as exc:
+            logger.debug(
+                "Skipping CF Backrefs tab registration for %s.%s: %s",
+                ct.app_label, ct.model, exc,
+            )
             continue
         if model_class is None:
             continue

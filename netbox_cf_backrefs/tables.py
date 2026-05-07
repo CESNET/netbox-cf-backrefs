@@ -40,8 +40,11 @@ def _peer_list_url(reference, target_pk):
 class CFBackrefTabTable(BaseTable):
     """Full list-view-style table used by the CF Backrefs tab.
 
-    Subclasses NetBoxTable so the Configure-Table modal and per-user column
-    prefs work. The leading `pivot` column renders the per-row filter icon.
+    Subclasses NetBox's `BaseTable` (the intermediate base — BS5 styling +
+    column-pref machinery, no model-bound `pk`/`id`/`actions`/CF/CL columns)
+    because rows are `Reference` dataclasses, not Django model instances.
+    The Configure-Table modal is wired in a later task. The leading `pivot`
+    column renders the per-row filter icon.
     """
 
     pivot = tables.Column(
