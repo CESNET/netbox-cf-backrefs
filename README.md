@@ -53,6 +53,21 @@ The per-row filter icon (`mdi mdi-filter`) pivots to the source model's NetBox l
 
 **Important:** the tab deliberately ignores the `excluded_custom_fields` setting and the CF-level `ui_visible='hidden'` flag. Anyone with `view_<parent_model>` permission can see hidden / excluded CF references via the tab. The panel honors both filters and is the curated view; the tab is the "everything" view. If your hidden CFs carry sensitive data, do not rely on the tab to hide them.
 
+## Custom Objects (`netbox_custom_objects`)
+
+When a Custom Object is the **target** of an object / multi-object CF, support is partial. Behavior (verified against `netbox_custom_objects` 0.5.1):
+
+| Situation | Panel | Tab |
+|---|---|---|
+| Custom Object type that existed at NetBox startup | ✅ works | ❌ not shown |
+| Custom Object type created **after** NetBox started | ❌ until restart | ❌ |
+| Same new type, **after a NetBox restart** | ✅ works | ❌ |
+
+- **The panel works** on Custom Object detail pages, because it is a template extension matched by model label (no URL routing involved).
+- **The tab does not appear on any Custom Object page.** Custom Object models are dynamically generated (`table<N>model`) and `netbox_custom_objects` never registers a routable URL for them, so the tab's link can't be reversed and NetBox silently drops it. This is a known limitation tracked in [`docs/TODO-custom-objects-tab.md`](docs/TODO-custom-objects-tab.md).
+- **New Custom Object types need a NetBox restart.** The plugin discovers CF target models once, at startup. A Custom Object type created at runtime is invisible to both surfaces until the next restart (same caveat as adding any object-CF — see *Behavior notes* above).
+- **A Custom Object instance cannot be a CF *source*.** Custom Object rows have no `custom_field_data` field, so they can never hold a NetBox object/multiobject CF and will never appear as a source row in a backref panel or tab.
+
 ## Development
 
 ```bash
