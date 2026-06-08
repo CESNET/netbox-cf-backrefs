@@ -7,6 +7,7 @@
 - Custom Object dynamic models (`netbox_custom_objects.table<N>model`) are always coerced to `"panel"`; their tab is never registered (also sidesteps the `NoReverseMatch` documented in `docs/TODO-custom-objects-tab.md`).
 - Display config is read once at startup; changing it requires a NetBox restart. A model gated to `panel`/`none` registers no tab route, so its `…/cf-backrefs/` URL is a normal 404.
 - Invalid config values fall back to the default and are logged once at startup.
+- The inline panel now shows the same per-row "Show peers" filter-icon action as the CF Backrefs tab (pivots to the source list filtered by the producing CF).
 
 ## 0.1.1 — 2026-05-06
 

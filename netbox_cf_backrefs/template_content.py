@@ -54,7 +54,7 @@ def _build_extension(model_label: str):
 
             page_size = get_plugin_config("netbox_cf_backrefs", "page_size") or 50
             per_page = _resolve_per_page(request, page_size)
-            table = CFBackrefTable(refs)
+            table = CFBackrefTable(refs, target_pk=obj.pk)
             # RequestConfig binds ?cfbackrefs_sort and ?cfbackrefs_page to the
             # table (django_tables2 honors Meta.prefix) and catches InvalidPage.
             RequestConfig(request, paginate={

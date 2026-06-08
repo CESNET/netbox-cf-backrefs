@@ -52,6 +52,32 @@ class PanelRenderTests(TestCase):
         self.assertIn(device.get_absolute_url(), body)
         self.assertIn("Technical contact", body)
 
+    def test_panel_has_peer_filter_action(self):
+        # The panel carries the same per-row filter-icon action as the tab:
+        # a primary filter button pivoting to the source list filtered by the
+        # CF that produced the row (/<app>/<model>/?cf_<name>=<target_pk>).
+        make_cf(
+            name="tech_contact",
+            label="Technical contact",
+            cf_type="object",
+            target_model=Contact,
+            source_models=[Device],
+        )
+        Device.objects.create(
+            name="dev-1",
+            site=self.site,
+            device_type=self.device_type,
+            role=self.role,
+            custom_field_data={"tech_contact": self.contact.pk},
+        )
+
+        body = self.client.get(
+            reverse("tenancy:contact", args=[self.contact.pk])
+        ).content.decode()
+        self.assertIn(f"/dcim/devices/?cf_tech_contact={self.contact.pk}", body)
+        self.assertIn("mdi mdi-filter", body)
+        self.assertIn("Show peers referencing this target", body)
+
     def test_panel_absent_when_no_references(self):
         # CF exists targeting Contact, but no source object references this contact.
         make_cf(
