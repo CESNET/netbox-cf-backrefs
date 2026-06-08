@@ -1,6 +1,9 @@
 # Claude Code (per-user, not for the repo)
 .claude/
 
+# Superpowers scratch (brainstorming specs/plans — local only)
+docs/superpowers/
+
 # Python
 __pycache__/
 *.py[cod]

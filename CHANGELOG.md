@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 — 2026-06-08
+
+- Configurable display per target model: `default_display` (`"panel"` | `"tab"` | `"both"` | `"none"`, default `"panel"`) and `display_overrides` (`{"app_label.model": mode}`).
+- Changed default: the **CF Backrefs tab is now off by default** — set `default_display` to `"tab"`/`"both"`, or add a per-model override, to enable it. Each model registers only the surface(s) its mode includes.
+- Custom Object dynamic models (`netbox_custom_objects.table<N>model`) are always coerced to `"panel"`; their tab is never registered (also sidesteps the `NoReverseMatch` documented in `docs/TODO-custom-objects-tab.md`).
+- Display config is read once at startup; changing it requires a NetBox restart. A model gated to `panel`/`none` registers no tab route, so its `…/cf-backrefs/` URL is a normal 404.
+- Invalid config values fall back to the default and are logged once at startup.
+
 ## 0.1.1 — 2026-05-06
 
 - Rebuild panel rendering on `django_tables2` + `NetBoxTable`-style markup; rows now use NetBox's standard `inc/table.html` partial (sortable headers, hover styles, htmx-aware).
