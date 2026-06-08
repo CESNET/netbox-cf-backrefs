@@ -4,7 +4,7 @@ MANAGE = $(PY) /opt/netbox/netbox/manage.py
 .PHONY: test lint format
 
 test:
-	$(MANAGE) test netbox_cf_backrefs --keepdb
+	NETBOX_CONFIGURATION=netbox_cf_backrefs.tests.configuration $(MANAGE) test netbox_cf_backrefs --keepdb
 
 lint:
 	$(PY) -m ruff check netbox_cf_backrefs
