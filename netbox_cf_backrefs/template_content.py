@@ -1,9 +1,10 @@
 """Dynamic PluginTemplateExtension registration.
 
-For every installed NetBox model, register a backref panel extension. The
-extension renders nothing unless the current object has at least one
-incoming object/multi-object CF reference. Discovery happens at module
-import; the per-render call into utils handles all dynamic CF state.
+Register a backref panel extension for every installed model whose display
+mode includes the panel (see ``display.resolve_display``). The mode is read
+once at import, so changing it requires a NetBox restart. A registered
+extension still renders nothing unless the object has at least one incoming
+object/multi-object CF reference.
 """
 import logging
 
@@ -14,6 +15,7 @@ from django_tables2 import RequestConfig
 from netbox.plugins import PluginTemplateExtension, get_plugin_config
 from utilities.paginator import EnhancedPaginator
 
+from .display import shows_panel
 from .tables import CFBackrefTable
 from .utils import get_reverse_cf_references
 
@@ -86,4 +88,8 @@ def _discover_target_model_labels() -> list[str]:
     return labels
 
 
-template_extensions = [_build_extension(label) for label in _discover_target_model_labels()]
+template_extensions = [
+    _build_extension(label)
+    for label in _discover_target_model_labels()
+    if shows_panel(label)
+]

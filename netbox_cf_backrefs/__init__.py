@@ -16,6 +16,8 @@ class NetBoxCFBackrefsConfig(PluginConfig):
     default_settings = {
         "page_size": 50,
         "excluded_custom_fields": [],
+        "default_display": "panel",
+        "display_overrides": {},
     }
 
     def ready(self):
@@ -23,6 +25,9 @@ class NetBoxCFBackrefsConfig(PluginConfig):
         # Importing the views module triggers register_model_view for each
         # installed content type. Same import-time pattern as template_content.
         from . import views  # noqa: F401
+        from .display import validate_display_config
+
+        validate_display_config()
 
 
 config = NetBoxCFBackrefsConfig

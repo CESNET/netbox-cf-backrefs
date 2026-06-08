@@ -1,8 +1,10 @@
 """Per-CF-target detail-page tabs.
 
-For every NetBox model that is currently a CF target, register a per-object
-tab via `register_model_view`. Each tab subclasses `ObjectView` so it inherits
-NetBox's standard `view_<parent_model>` permission check.
+Register a CF Backrefs tab via ``register_model_view`` for every installed model
+whose display mode includes the tab (see ``display.resolve_display``); the mode
+is read once at import, so changing it requires a NetBox restart. Each tab
+subclasses ``ObjectView`` so it inherits NetBox's standard ``view_<parent_model>``
+permission check.
 """
 import logging
 
@@ -13,6 +15,7 @@ from netbox.views.generic import ObjectView
 from utilities.htmx import htmx_partial
 from utilities.views import ViewTab, register_model_view
 
+from .display import shows_tab
 from .filters import apply_filters
 from .tables import CFBackrefTabTable
 from .utils import get_reverse_cf_references
@@ -69,8 +72,17 @@ def _make_tab_view(model_class):
     return _CFBackrefsTabView
 
 
+def _register_tab_for(model_class):
+    """Register the CF Backrefs tab view + route for a single model."""
+    view_cls = _make_tab_view(model_class)
+    register_model_view(model_class, name="cf_backrefs", path="cf-backrefs")(view_cls)
+
+
 def _register_tabs():
-    """Register one ObjectView+tab per installed content type at import time."""
+    """Register the CF Backrefs tab for every installed model whose display mode
+    includes the tab. Models gated to panel/none — and Custom Objects, which are
+    coerced to panel — are skipped, so no route exists for them. Runs once at
+    import; changing display config requires a NetBox restart."""
     for ct in ContentType.objects.all():
         if not apps.is_installed(ct.app_label):
             continue
@@ -84,8 +96,9 @@ def _register_tabs():
             continue
         if model_class is None:
             continue
-        view_cls = _make_tab_view(model_class)
-        register_model_view(model_class, name="cf_backrefs", path="cf-backrefs")(view_cls)
+        if not shows_tab(f"{ct.app_label}.{ct.model}"):
+            continue
+        _register_tab_for(model_class)
 
 
 _register_tabs()
