@@ -1,5 +1,8 @@
-# Claude Code local settings (per-user, not for the repo)
-.claude/settings.local.json
+# Claude Code (per-user, not for the repo)
+.claude/
+
+# Superpowers scratch (brainstorming specs/plans — local only)
+docs/superpowers/
 
 # Python
 __pycache__/

@@ -1,0 +1,24 @@
+{% extends 'generic/object.html' %}
+{% load render_table from django_tables2 %}
+{% load helpers %}
+{% load i18n %}
+{% block content %}
+  <div class="row">
+    <div class="col col-md-12">
+      <div class="card">
+        <h5 class="card-header">{% trans 'CF Backrefs' %} ({{ total }})</h5>
+        <div class="card-body">{% include 'inc/table_controls_htmx.html' %}</div>
+        <div id="object_list"
+             hx-target="this"
+             hx-select="#object_list"
+             hx-swap="outerHTML">
+          <div class="table-responsive">{% render_table table 'inc/table.html' %}</div>
+          {% include 'inc/paginator.html' with paginator=table.paginator page=table.page %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if request.user.is_authenticated %}
+    {% table_config_form table table_name=table.name %}
+  {% endif %}
+{% endblock content %}

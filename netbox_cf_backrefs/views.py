@@ -1,0 +1,104 @@
+"""Per-CF-target detail-page tabs.
+
+Register a CF Backrefs tab via ``register_model_view`` for every installed model
+whose display mode includes the tab (see ``display.resolve_display``); the mode
+is read once at import, so changing it requires a NetBox restart. Each tab
+subclasses ``ObjectView`` so it inherits NetBox's standard ``view_<parent_model>``
+permission check.
+"""
+import logging
+
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import render
+from netbox.views.generic import ObjectView
+from utilities.htmx import htmx_partial
+from utilities.views import ViewTab, register_model_view
+
+from .display import shows_tab
+from .filters import apply_filters
+from .tables import CFBackrefTabTable
+from .utils import get_reverse_cf_references
+
+logger = logging.getLogger("netbox_cf_backrefs")
+
+
+def _badge_for(obj):
+    count = sum(1 for _ in get_reverse_cf_references(obj, apply_visibility_filters=False))
+    return count or None
+
+
+def _make_tab_view(model_class):
+    class _CFBackrefsTabView(ObjectView):
+        queryset = model_class.objects.all()
+        template_name = "netbox_cf_backrefs/tab.html"
+        partial_template_name = "netbox_cf_backrefs/tab_partial.html"
+        tab = ViewTab(
+            label="CF Backrefs",
+            badge=_badge_for,
+            weight=2000,
+            hide_if_empty=True,
+        )
+
+        def get(self, request, **kwargs):
+            instance = self.get_object(**kwargs)
+            refs = list(get_reverse_cf_references(instance, apply_visibility_filters=False))
+            filtered = apply_filters(refs, request.GET)
+
+            table = CFBackrefTabTable(filtered, target_pk=instance.pk)
+            # BaseTable.configure() reads request.user.config['tables.<name>.columns']
+            # and applies saved per-user column prefs from the Configure Table modal,
+            # then paginates via EnhancedPaginator with NetBox's standard per-page handling.
+            table.configure(request)
+
+            ctx = {
+                "object": instance,
+                "tab": self.tab,
+                "table": table,
+                # `total` is the unfiltered count so the header always matches
+                # the tab badge — narrowing is reflected in the paginator's
+                # "Showing 1-N of M" footer rather than a separate subtitle.
+                "total": len(refs),
+                # Triggers the Configure Table button inside
+                # inc/table_controls_htmx.html and binds the modal id.
+                "table_modal": f"{table.name}_config",
+            }
+            template = self.partial_template_name if htmx_partial(request) else self.template_name
+            return render(request, template, ctx)
+
+    _CFBackrefsTabView.__name__ = (
+        f"CFBackrefsTabView_{model_class._meta.app_label}_{model_class._meta.model_name}"
+    )
+    return _CFBackrefsTabView
+
+
+def _register_tab_for(model_class):
+    """Register the CF Backrefs tab view + route for a single model."""
+    view_cls = _make_tab_view(model_class)
+    register_model_view(model_class, name="cf_backrefs", path="cf-backrefs")(view_cls)
+
+
+def _register_tabs():
+    """Register the CF Backrefs tab for every installed model whose display mode
+    includes the tab. Models gated to panel/none — and Custom Objects, which are
+    coerced to panel — are skipped, so no route exists for them. Runs once at
+    import; changing display config requires a NetBox restart."""
+    for ct in ContentType.objects.all():
+        if not apps.is_installed(ct.app_label):
+            continue
+        try:
+            model_class = ct.model_class()
+        except Exception as exc:
+            logger.debug(
+                "Skipping CF Backrefs tab registration for %s.%s: %s",
+                ct.app_label, ct.model, exc,
+            )
+            continue
+        if model_class is None:
+            continue
+        if not shows_tab(f"{ct.app_label}.{ct.model}"):
+            continue
+        _register_tab_for(model_class)
+
+
+_register_tabs()
