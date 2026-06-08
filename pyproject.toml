@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-cf-backrefs"
-version = "0.1.1"
+dynamic = ["version"]
 description = "NetBox plugin: show reverse references from object / multi-object custom fields on the target object's detail page."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -21,8 +21,11 @@ classifiers = [
 Homepage = "https://github.com/cesnet/netbox-cf-backrefs"
 
 [tool.setuptools]
-packages = ["netbox_cf_backrefs", "netbox_cf_backrefs.tests"]
+packages = ["netbox_cf_backrefs"]
 include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "netbox_cf_backrefs.version.__version__"}
 
 [tool.ruff]
 line-length = 120
