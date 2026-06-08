@@ -10,6 +10,7 @@ import logging
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
+from django.db import DatabaseError
 from django.shortcuts import render
 from netbox.views.generic import ObjectView
 from utilities.htmx import htmx_partial
@@ -82,8 +83,22 @@ def _register_tabs():
     """Register the CF Backrefs tab for every installed model whose display mode
     includes the tab. Models gated to panel/none — and Custom Objects, which are
     coerced to panel — are skipped, so no route exists for them. Runs once at
-    import; changing display config requires a NetBox restart."""
-    for ct in ContentType.objects.all():
+    import; changing display config requires a NetBox restart.
+
+    During a fresh install or image build (e.g. the netbox-docker
+    ``collectstatic``/``migrate`` steps) this import runs before the database is
+    reachable (``OperationalError``) or migrated (``ProgrammingError``); in that
+    case log and register no tabs rather than crash startup — registration runs
+    again on the next start once the database is ready."""
+    try:
+        content_types = list(ContentType.objects.all())
+    except DatabaseError:
+        logger.warning(
+            "netbox_cf_backrefs: database not ready; skipping tab registration "
+            "(expected during install / collectstatic / migrate)."
+        )
+        return
+    for ct in content_types:
         if not apps.is_installed(ct.app_label):
             continue
         try:
