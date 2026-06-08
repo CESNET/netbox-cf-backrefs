@@ -4,6 +4,10 @@ NetBox plugin that surfaces the **reverse** side of object / multi-object custom
 
 If you create a custom field of type `object` (or `multi-object`) on a Device pointing to a Contact, NetBox shows the contact under the device — but the contact page has no indication of being referenced. This plugin adds an inline panel **"Referenced by Custom Fields"** to the contact page (and to every other NetBox object that is a current CF target).
 
+![Referenced by Custom Fields panel listing six objects from different models that reference one Contact via custom fields](docs/img/panel.png)
+
+*The inline panel on a CF target's detail page: every object pointing here via an object / multi-object CF — with its source type, the producing custom field, and a per-row pivot to "show peers".*
+
 ## Compatibility
 
 - NetBox 4.5.0 – 4.6.99
@@ -76,6 +80,10 @@ PLUGINS_CONFIG = {
 ## CF Backrefs tab
 
 When a model's display mode includes the tab (`tab` or `both` — see *Display: panel vs tab*; off by default), its detail page exposes a **CF Backrefs** tab (`/<app>/<model>/<pk>/cf-backrefs/`) whenever at least one CF references the object. The tab is intentionally minimal — it mirrors `netbox_custom_objects`'s combined-tabs visual baseline: a quick-search input, an htmx-paginated table, and a single per-row filter-icon action. No filter sidebar, no sortable headers.
+
+![CF Backrefs tab on a Contact detail page, with quick search and a CF Type column](docs/img/tab.png)
+
+*The optional CF Backrefs tab — the unfiltered "everything" view, with quick-search and a CF-type column.*
 
 The per-row filter icon (`mdi mdi-filter`) pivots to the source model's NetBox list view filtered by the CF that produced the row, e.g. `/dcim/devices/?cf_tech_contact=<contact_pk>` ("show me every Device that references this same target via this CF").
 
