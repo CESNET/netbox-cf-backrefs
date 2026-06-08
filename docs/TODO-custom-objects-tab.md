@@ -4,7 +4,7 @@
 
 The **panel** already works on Custom Object detail pages. The **tab** does not, and never will via `register_model_view` alone. This file is the verified recipe to fix it. Findings are code-cited against **`netbox_custom_objects` 0.5.1** at `/opt/netbox-custom-objects/netbox_custom_objects/` and our own `netbox_cf_backrefs`.
 
-> Empirically confirmed broken: `docs/smoke-tests/2026-06-05-custom-objects-smoke.md` (step A3 — panel present, no `cf-backrefs` href anywhere in the tab strip).
+> Empirically confirmed broken via a live browser check: on a Custom Object detail page the backref panel renders, but there is no `cf-backrefs` href anywhere in the tab strip.
 
 ---
 
@@ -23,7 +23,7 @@ A Custom Object's detail page renders its tab strip with `{% plugin_extra_tabs o
 
 ## ⚠️ Resolve before coding — scope question
 
-`get_reverse_cf_references` (`utils.py:39-44`) queries `extras.CustomField` rows whose `related_object_type` is the CO row's content type. On a CO page that means **"NetBox extras object/multi-object CFs (on Devices, Sites, …) that point AT this Custom Object row."** That is a real, valid set (the smoke test's `cfb_project_link` is exactly this).
+`get_reverse_cf_references` (`utils.py:39-44`) queries `extras.CustomField` rows whose `related_object_type` is the CO row's content type. On a CO page that means **"NetBox extras object/multi-object CFs (on Devices, Sites, …) that point AT this Custom Object row."** That is a real, valid set (e.g. a Device with a NetBox object-CF pointing at this Custom Object row).
 
 It does **not** surface **CO→CO** references stored in `CustomObjectTypeField` FK columns — those are the host plugin's *own* "Custom Objects" tab (`related_tabs/views/combined.py:91-106`), a different reference system.
 
