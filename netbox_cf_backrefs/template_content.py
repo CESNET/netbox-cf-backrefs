@@ -10,6 +10,7 @@ import logging
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
+from django.db import DatabaseError
 from django.template.loader import render_to_string
 from django_tables2 import RequestConfig
 from netbox.plugins import PluginTemplateExtension, get_plugin_config
@@ -74,9 +75,25 @@ def _build_extension(model_label: str):
 
 
 def _discover_target_model_labels() -> list[str]:
-    """Return `app_label.model` strings for every installed content type."""
+    """Return `app_label.model` strings for every installed content type.
+
+    Runs at import time. During a fresh install or image build (e.g. the
+    netbox-docker ``collectstatic``/``migrate`` steps) Django loads this module
+    before the database is reachable (``OperationalError``) or migrated
+    (``ProgrammingError``); in that case log and register no panels rather than
+    crash startup — the full set is discovered on the next start once the
+    database is ready.
+    """
     labels: list[str] = []
-    for ct in ContentType.objects.all():
+    try:
+        content_types = list(ContentType.objects.all())
+    except DatabaseError:
+        logger.warning(
+            "netbox_cf_backrefs: database not ready; skipping panel registration "
+            "(expected during install / collectstatic / migrate)."
+        )
+        return labels
+    for ct in content_types:
         if not apps.is_installed(ct.app_label):
             continue
         try:

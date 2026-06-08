@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 — 2026-06-08
+
+- Fixed: the plugin no longer crashes NetBox startup when the database is not ready. Both display surfaces enumerate `ContentType.objects.all()` at import time; during a fresh install or image build (e.g. netbox-docker's `collectstatic`/`migrate` steps) this ran before the database was reachable or migrated and raised `OperationalError`/`ProgrammingError`, failing the build. Discovery now catches `DatabaseError`, logs a warning, and registers no panels/tabs — the full set is registered on the next start once the database is up.
+
 ## 0.1.2 — 2026-06-08
 
 - Configurable display per target model: `default_display` (`"panel"` | `"tab"` | `"both"` | `"none"`, default `"panel"`) and `display_overrides` (`{"app_label.model": mode}`).

@@ -3,4 +3,4 @@
 # statically (no import) only while it stays a plain literal assignment. Do NOT add
 # imports or computed logic here, or the PyPI build (which has no NetBox installed)
 # will break.
-__version__ = "0.1.2"
+__version__ = "0.1.3"
