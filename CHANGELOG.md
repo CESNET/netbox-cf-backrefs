@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-09-04
+
+- NetBox 4.7 support: `min_version`/`max_version` are now `4.7.0`/`4.7.99`. **NetBox 4.5 and 4.6 are no longer supported**; stay on 0.1.x for those.
+- Fixed: the panel paginator used NetBox's custom `{% querystring request ... %}` template tag, which 4.7 removed in favour of Django's built-in tag (no `request` argument; passing it raises `TemplateSyntaxError`). The template now uses the Django built-in.
+
 ## 0.1.3 — 2026-06-08
 
 - Fixed: the plugin no longer crashes NetBox startup when the database is not ready. Both display surfaces enumerate `ContentType.objects.all()` at import time; during a fresh install or image build (e.g. netbox-docker's `collectstatic`/`migrate` steps) this ran before the database was reachable or migrated and raised `OperationalError`/`ProgrammingError`, failing the build. Discovery now catches `DatabaseError`, logs a warning, and registers no panels/tabs — the full set is registered on the next start once the database is up.
