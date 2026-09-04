@@ -1,4 +1,3 @@
-{% load helpers %}
 {% load i18n %}
 {% if page %}
   <div class="d-flex justify-content-between align-items-center border-top p-2">
@@ -9,7 +8,7 @@
           {# Previous page #}
           {% if page.has_previous %}
             <li class="page-item">
-              <a href="{% querystring request cfbackrefs_page=page.previous_page_number %}"
+              <a href="{% querystring cfbackrefs_page=page.previous_page_number %}"
                  class="page-link">
                 <i class="mdi mdi-chevron-left"></i>
               </a>
@@ -19,7 +18,7 @@
           {% for p in page.smart_pages %}
             <li class="page-item{% if page.number == p %} active{% endif %}">
               {% if p %}
-                <a href="{% querystring request cfbackrefs_page=p %}"
+                <a href="{% querystring cfbackrefs_page=p %}"
                    class="page-link {% if page.number == p %}active{% endif %}">{{ p }}</a>
               {% else %}
                 <span class="page-link" disabled>&hellip;</span>
@@ -29,7 +28,7 @@
           {# Next page #}
           {% if page.has_next %}
             <li class="page-item">
-              <a href="{% querystring request cfbackrefs_page=page.next_page_number %}"
+              <a href="{% querystring cfbackrefs_page=page.next_page_number %}"
                  class="page-link">
                 <i class="mdi mdi-chevron-right"></i>
               </a>
@@ -53,8 +52,7 @@
         <ul class="dropdown-menu">
           {% for n in page.paginator.get_page_lengths %}
             <li>
-              <a href="{% querystring request cfbackrefs_per_page=n %}"
-                 class="dropdown-item">{{ n }}</a>
+              <a href="{% querystring cfbackrefs_per_page=n %}" class="dropdown-item">{{ n }}</a>
             </li>
           {% endfor %}
         </ul>

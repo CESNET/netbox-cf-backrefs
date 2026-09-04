@@ -10,7 +10,7 @@ If you create a custom field of type `object` (or `multi-object`) on a Device po
 
 ## Compatibility
 
-- NetBox 4.5.0 – 4.6.99
+- NetBox 4.7.0 – 4.7.99
 - Python 3.12 / 3.13 / 3.14
 
 ## Install
