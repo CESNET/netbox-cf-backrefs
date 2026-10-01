@@ -23,6 +23,10 @@ def make_cf(
     `target_model` is the Django model class the CF points to.
     `source_models` is an iterable of Django model classes the CF is attached to.
     """
+    # Other installed plugins warm the ContentType cache at startup, before the
+    # test database exists, so cached ids point at the production DB. Drop them
+    # so every lookup below (and in the code under test) hits the test DB.
+    ContentType.objects.clear_cache()
     cf = CustomField.objects.create(
         name=name,
         label=label or name,
