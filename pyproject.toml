@@ -20,6 +20,9 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/cesnet/netbox-cf-backrefs"
 
+[project.entry-points."netbox.plugins"]
+netbox_cf_backrefs = "netbox_cf_backrefs:config"
+
 [tool.setuptools]
 packages = ["netbox_cf_backrefs"]
 include-package-data = true
